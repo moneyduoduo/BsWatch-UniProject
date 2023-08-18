@@ -1,0 +1,312 @@
+import { UTSAndroid } from "io.dcloud.uts";
+import YCBTClient from "com.yucheng.ycbtsdk.YCBTClient";
+import BleScanResponse from "com.yucheng.ycbtsdk.response.BleScanResponse"
+import ScanDeviceBean from "com.yucheng.ycbtsdk.bean.ScanDeviceBean"
+import BleConnectResponse from "com.yucheng.ycbtsdk.response.BleConnectResponse"
+import Constants from "com.yucheng.ycbtsdk.Constants"
+import BleDataResponse from "com.yucheng.ycbtsdk.response.BleDataResponse"
+import Exception from "java.lang.Exception";
+import Class from 'java.lang.Class';
+import HashMap from "java.util.HashMap"
+import DfuCallBack from "com.yucheng.ycbtsdk.upgrade.DfuCallBack";
+import Intent from "android.content.Intent";
+import RtkConfigure from "com.realsil.sdk.core.RtkConfigure";
+import RtkCore from "com.realsil.sdk.core.RtkCore";
+import RtkDfu from "com.realsil.sdk.dfu.RtkDfu";
+import BleDeviceToAppDataResponse from "com.yucheng.ycbtsdk.response.BleDeviceToAppDataResponse";
+import Build from "android.os.Build";
+import Settings from "android.provider.Settings";
+import Environment from "android.os.Environment";
+
+/**
+ * 判断当前的基座是否已经集成了sdk, 即是否是自定义基座
+ */
+export function checkHasIntegration(packgeName : string) : Boolean {
+
+	let hasIntegration = true;
+	try {
+		let xClass = Class.forName(packgeName)
+		console.log(xClass);
+	} catch (e : Exception) {
+		hasIntegration = false;
+	}
+	return hasIntegration;
+}
+
+/**
+ * 权限检查
+ */
+export function checkPromise() {
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || Environment.isExternalStorageManager()) {
+		console.log('???????checkPromise true');
+	} else {
+		const intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+		UTSAndroid.getUniActivity()!.startActivity(intent);
+	}
+}
+
+
+/*
+ * 初始化
+ */
+export function initClient(callback ?: () => void) : void {
+	class MyBleConnectResponse implements BleConnectResponse {
+		override onConnectResponse(code : Int) : void {
+			console.log('registerBleStateChange：', code);
+		}
+	}
+	class MyBleDeviceToAppDataResponse implements BleDeviceToAppDataResponse {
+		override onDataResponse(dataType : Int, dataMap : HashMap<any, any>) : void {
+			console.log('被动回传数据');
+			console.log(dataType);
+			console.log(dataMap.toString());
+		}
+	}
+	class AddUIRunnable extends Runnable {
+		override run() : void {
+			const content = UTSAndroid.getAppContext();
+			YCBTClient.initClient(content, true);
+			console.log('初始化');
+			YCBTClient.registerBleStateChange(new MyBleConnectResponse());
+			YCBTClient.deviceToApp(new MyBleDeviceToAppDataResponse())
+			callback?.();
+		}
+	}
+	UTSAndroid.getUniActivity()!.runOnUiThread(new AddUIRunnable())
+}
+
+/*
+ * 固件升级初始化
+ */
+export function initUpdate() {
+	const content = UTSAndroid.getAppContext();
+	const configure = new RtkConfigure.Builder()
+		.debugEnabled(true)
+		.printLog(true)
+		.logTag("OTA")
+		.build();
+	RtkCore.initialize(content, configure);
+	RtkDfu.initialize(content, true);
+}
+
+/*
+ * 获取设备蓝牙连接状态
+ */
+export function getConnectState() : Int {
+	// Constants.BLEState.Connected
+	// TimeOut = 1;
+	// NotOpen = 2;
+	// Disconnect = 3;
+	// Disconnecting = 4;
+	// Connecting = 5;
+	// Connected = 6;
+	// ServicesDiscovered = 7;
+	// CharacteristicDiscovered = 8;
+	// CharacteristicNotification = 9;
+	// ReadWriteOK = 10;
+	return YCBTClient.connectState();
+}
+
+/* 
+ * 扫描蓝牙
+ */
+export function startScanBle(callBack ?: (mac : Map<string, string>) => void) : void {
+	console.log('开始扫描设备');
+	class MyBleScanResponse implements BleScanResponse {
+		override onScanResponse(i : Int, scanDeviceBean ?: ScanDeviceBean) : void {
+			let deviceMac : string = scanDeviceBean?.getDeviceMac().toString();
+			let deviceName : string = scanDeviceBean?.getDeviceName().toString();
+			if (deviceMac !== "null") {
+				const resObj = new Map<string, string>();
+				resObj.set('deviceName', deviceName);
+				resObj.set('deviceMac', deviceMac);
+				callBack?.(resObj)
+			}
+		}
+	}
+	YCBTClient.startScanBle(new MyBleScanResponse(), 6);
+}
+
+/* 
+ * 停止扫描
+ */
+// export function customizeCGM(callBack ?: (res : HashMap<any, any>) => void) : void {
+// 	console.log('开始扫描设备');
+// 	class MyBleDataResponse implements BleDataResponse {
+// 		override onDataResponse(code : Int, ratio : Float, resultMap : HashMap<any, any>) : void {
+// 			console.log('code------', code);
+// 			console.log('ratio------', ratio);
+// 			console.log('resultMap------', resultMap);
+// 			console.log('是否设置成功：', code);
+// 			callBack?.(resultMap);
+// 		}
+// 	}
+// 	YCBTClient.getCustomizeCGM(new MyBleDataResponse());
+// }
+
+/* 
+ * 停止扫描
+ */
+// export function healthHistoryData(callBack ?: (res : HashMap<any, any>) => void) : void {
+// 	console.log('开始扫描设备');
+// 	class MyBleDataResponse implements BleDataResponse {
+// 		override onDataResponse(code : Int, ratio : Float, resultMap : HashMap<any, any>) : void {
+// 			console.log('code------', code);
+// 			console.log('ratio------', ratio);
+// 			console.log('resultMap------', resultMap);
+// 			console.log('是否设置成功：', code);
+// 			callBack?.(resultMap);
+// 		}
+// 	}
+// 	YCBTClient.startCustomizeDataSync(new MyBleDataResponse());
+// }
+
+/* 
+ * 停止扫描
+ */
+export function stopScanBle() {
+	YCBTClient.stopScanBle();
+}
+
+/* 
+ * 连接蓝牙
+ */
+export function connectBle(macAddr : string, callback ?: (code : Int) => void) : void {
+	console.log('开始连接');
+	class MyBleConnectResponse implements BleConnectResponse {
+		override onConnectResponse(code : Int) : void {
+			console.log('是否连接成功：', code);
+			callback?.(code)
+		}
+	}
+	YCBTClient.connectBle(macAddr, new MyBleConnectResponse());
+}
+
+/* 
+ * 主动断开连接(解绑设备,此操作后不再自动重连设备, 适用于重新绑定设备)
+ */
+export function disconnectBle() {
+	YCBTClient.disconnectBle();
+}
+
+/* 
+ * 设置时间
+ */
+export function watchSettingTime() : void {
+	console.log('watchSettingTime');
+	class MyBleDataResponse implements BleDataResponse {
+		override onDataResponse(code : Int, ratio : Float, resultMap : HashMap<any, any>) : void {
+			console.log('code------', code);
+			console.log('ratio------', ratio);
+			console.log('resultMap------', resultMap);
+			console.log('是否设置成功：', code);
+		}
+	}
+	YCBTClient.settingTime(new MyBleDataResponse());
+}
+
+
+/* 
+ * 同步健康历史数据
+ */
+export function healthHistoryData() : void {
+	console.log('healthHistoryData');
+	class MyBleDataResponse implements BleDataResponse {
+		override onDataResponse(code : Int, ratio : Float, resultMap : HashMap<any, any>) : void {
+			console.log('code------', code);
+			console.log('ratio------', ratio);
+			console.log('resultMap------', resultMap);
+			console.log('是否设置成功：', code);
+		}
+	}
+	// YCBTClient.startCustomizeDataSync(0x01, new MyBleDataResponse())
+}
+
+/* 
+ * 手动校准血糖
+ * @param { Float } bsNumber 血糖取值
+ * @param { Int } type 0空腹 1早餐后 2午餐前 3午餐后 4晚餐前 5晚餐后
+ * @param { function } callback 0x00成功 0x01失败-参数错误 0x02失败-设备未测试或无值 
+ */
+export function appBloodSugarCalibration(bsNumber : Number, type : Int, callback ?: (result : any) => void) : void {
+	console.log('appBloodSugarCalibration');
+	class MyBleDataResponse implements BleDataResponse {
+		override onDataResponse(code : Int, ratio : Float, resultMap : HashMap<any, any>) : void {
+			console.log('code------', code);
+			console.log('ratio------', ratio);
+			console.log('resultMap------', resultMap);
+			console.log('是否设置成功：', code);
+			callback?.(resultMap)
+		}
+	}
+	let nums = bsNumber.toString().split('.')
+	let intNum = Integer.parseInt(nums[0])
+	let floatNum = 0
+	if (nums.length > 1) {
+		floatNum = Integer.parseInt(nums[1])
+	}
+	YCBTClient.appBloodSugarCalibration(intNum, floatNum, type, new MyBleDataResponse())
+}
+
+export function upgradeFirmware(path : String) {
+
+	class AddUIRunnable extends Runnable {
+		override run() : void {
+			console.log('progress');
+		}
+	}
+
+	class MyDfuCallBack implements DfuCallBack {
+		override progress(progress : Int) {
+			let uiRunable = new AddUIRunnable();
+			UTSAndroid.getUniActivity()!.runOnUiThread(uiRunable)
+			console.log('progress:', progress);
+		};
+		override success() { console.log('success') };
+		override failed(msg : string) { console.log('failed', msg) };
+		override disconnect() { console.log('disconnect') };
+		override connecting() { console.log('connecting') };
+		override connected() { console.log('connected') };
+		override latest() { console.log('latest') };
+		override error(msg : string) { console.log('error', msg) };
+	}
+
+	const content = UTSAndroid.getAppContext();
+	console.log('path:', path);
+
+	YCBTClient.upgradeFirmware(content, null, null, path, new MyDfuCallBack());
+
+	// let intent = Intent(Intent.ACTION_GET_CONTENT);
+	// intent.type = "*/*";
+	// intent.addCategory(Intent.CATEGORY_OPENABLE)
+	// UTSAndroid.getUniActivity()!.startActivityForResult(intent, 1564);
+	// UTSAndroid.onAppActivityResult((requestCode : Int, resultCode : Int, data ?: Intent) => {
+	// 	console.log(requestCode, resultCode);
+	// 	let uri = data?.data;
+	// 	console.log(uri);
+	// 	console.log(uri.toString());
+
+	// 	try {
+	// 		YCBTClient.upgradeFirmware(content, null, null, '/storage/emulated/0/Download/WeiXin/H01CGM-APP-DFU-V0.06.zip', new MyDfuCallBack());
+	// 	} catch (e) {
+	// 		//TODO handle the exception.
+	// 		console.log(e);
+	// 	}
+	// });
+}
+
+/* 
+ * 设置时间
+ */
+export function getDeviceInfo() : void {
+	console.log('getDeviceInfo');
+	class MyBleDataResponse implements BleDataResponse {
+		override onDataResponse(code : Int, ratio : Float, resultMap : HashMap<any, any>) : void {
+			console.log('code------', code);
+			console.log('ratio------', ratio);
+			console.log('resultMap------', resultMap);
+			console.log('是否设置成功：', code);
+		}
+	}
+	YCBTClient.getDeviceInfo(new MyBleDataResponse());
+}

@@ -1,0 +1,53 @@
+{
+	// "condition": { //模式配置，仅开发期间生效
+	// 	"current": 0, //当前激活的模式（list 的索引项）
+	// 	"list": [{
+	// 		"name": "test", //模式名称
+	// 		"path": "pages/login/register" //启动页面，必选
+	// 	}]
+	// },
+	"pages": [
+		// {
+		// 	"path": "uni_modules/HF-HF_debugging/pages/next/next",
+		// 	"style": {
+		// 		"navigationStyle": "custom",
+		// 		"backgroundColor": "transparent",
+		// 		"app-plus": {
+		// 			"animationType": "slide-in-bottom",
+		// 			"background": "transparent",
+		// 			"popGesture": "none"
+		// 		}
+		// 	}
+		// },
+		{
+			"path": "pages/launch/launch"
+		},
+		{
+			"path": "pages/index/index"
+		}, {
+			"path": "pages/login/login"
+		}, {
+			"path": "pages/login/register"
+		}, {
+			"path": "pages/login/forget"
+		}, {
+			"path": "pages/index/test/test",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}
+	],
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			// uni-ui 规则如下配置
+			"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+		}
+	},
+
+	"globalStyle": {
+		"navigationStyle": "custom"
+	}
+}

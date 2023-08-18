@@ -1,0 +1,58 @@
+{
+	"app": {
+		"name": "watch",
+		"languge": "ch"
+	},
+	"pages": {
+		"login": "Login",
+		"register": "Register Account",
+		"forget": "Forget Password"
+	},
+	"tip": {
+		"logSuccess": "Login Successfully",
+		"logErr": "Incorrect email or password",
+		"pwdEmpty": "Password cannot empty",
+		"emailEmpty": "Email cannot empty",
+		"codeEmpty": "Code cannot empty",
+		"pwdDiff": "The two passwords are inconsistent",
+		"pwdInvalid": "Create a password that contains at least:8 characters、1 special character e.g @#!$%^&+=、case sensitivity",
+		"pwdNewSuccess": "Password set successfully",
+		"sendCode": "Press ‘Send Code’ and past here the verification code that you will receive to your email",
+		"codeSend": "Verificaiton Code sent",
+		"emailInvalid": "Invalid email format",
+		"hasReg": "Email has been registered"
+	},
+	"login": {
+		"link_reg": "Register Account",
+		"link_forg": "Forget Password",
+		"link_conditions_pre": "Agree with ",
+		"link_conditions_and": "and ",
+		"link_conditions": "Terms and conditions ",
+		"link_conditions_all": "Agree with Terms and conditions and Privacy Policy",
+		"link_privacy": "Privacy Policy",
+		"link_toLog": "Already have account? Login",
+		"btn_login": "Login",
+		"btn_reg": "Register",
+		"btn_next": "Next",
+		"btn_send": "Send code",
+		"btn_resend": "Resend",
+		"btn_sending": "Resend in ",
+		"input_email": "Email",
+		"input_pwd": "Password",
+		"input_pwd2": "Please enter password",
+		"input_comfimPwd": "Please confirm password",
+		"input_email2": "Please enter email",
+		"input_code": "Please enter code",
+		"step1": "Verify email",
+		"step2": "Set new password"
+	},
+	"index": {
+		"option_device": "Device selection",
+		"option_update": "Check Update",
+		"option_sync": "Sync time",
+		"option_calibration": "Calibration",
+		"account": "Account",
+		"watch": "Watch",
+		"sync": "Sync and Upload"
+	}
+}

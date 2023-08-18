@@ -1,0 +1,6 @@
+/dist/release/*
+/dist/build/*
+/dist/cache/*
+/dist/dev/*
+/dist/resources/*
+/node_modules/

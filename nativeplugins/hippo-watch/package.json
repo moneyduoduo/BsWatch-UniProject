@@ -1,0 +1,23 @@
+{
+	"name": "hippo-watch",
+	"id": "hippo-watch",
+	"version": "1.0.0",
+	"description": "hippo-watch",
+	"_dp_type": "nativeplugin",
+	"_dp_nativeplugin": {
+		"android": {
+			"plugins": [{
+				"type": "module",
+				"name": "hippo-watch",
+				"class": "com.hippo.uts.Bluetooth"
+			}],
+			"abis": [
+				"arm64-v8a",
+				"armeabi-v7a",
+				"x86",
+				"x86_64"
+			],
+			"integrateType": "aar"
+		}
+	}
+}
