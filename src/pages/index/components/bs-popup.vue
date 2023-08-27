@@ -42,7 +42,6 @@
 	const submit = () => {
 		if (value.value !== '') {
 			emits('handle', value.value);
-			close();
 		}
 	}
 

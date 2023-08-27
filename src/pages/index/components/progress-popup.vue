@@ -12,7 +12,7 @@
 				</view>
 			</view>
 			<view class="footer">
-				<view class="btn" @tap="close">OK</view>
+				<view class="btn">waiting</view>
 			</view>
 		</view>
 	</uni-popup>

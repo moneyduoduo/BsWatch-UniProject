@@ -8,10 +8,6 @@
 			<sync-charts :rate="syncRate" @sync="authClick(syncUpdate, 'syncUpdate')" />
 			<view v-if="lastSyncTime" class="sync-time">Last Update at {{ lastSyncTime }}</view>
 		</view>
-		<!-- <view>
-			<Button @tap="testJump(1)">获取CGM</Button>
-			<Button @tap="testJump(2)">获取数据</Button>
-		</view> -->
 		<view class="option">
 			<options @handleE="authClick(handleOptions, $event)" :url="versionUrl" />
 		</view>
@@ -23,6 +19,7 @@
 </template>
 
 <script setup>
+import { onUnmounted } from 'vue';
 	const hippoWatch = uni.requireNativePlugin("hippo-watch");
 	import {
 		computed,
@@ -78,18 +75,42 @@
 			getHeaderInfo();
 		});
 	})
-
-	const testJump = type => {
-		if (type === 1) {
-			uni.navigateTo({
-				url: '/pages/index/test/test?key=1'
-			})
-		}
-		if (type === 2) {
-			uni.navigateTo({
-				url: '/pages/index/test/test?key=2'
-			})
-		}
+	
+	onUnmounted(() => {
+		console.log("卸载页面");
+		clearInterval(connectStateTimer);
+	})
+	
+	/* 监听连接 */
+	let connectStateTimer = null;
+	let connectStateTimeOut = 35;
+	const watchConnect = () => {
+		console.log("开始监听");
+		clearInterval(connectStateTimer);
+		connectStateTimer = setInterval(() => {
+			hippoWatch.getConnectState(stateRes => {
+				// console.log("连接状态:" + stateRes.code);
+				if (stateRes.code < 6) {
+					hippoWatch.disconnectBle(() => {});
+					hippoWatch.connectBle(currentDevice.value.deviceMac, res => {
+						console.log("断开重连");
+						console.log(res);
+					});
+					connectStateTimeOut--;
+					if(connectStateTimeOut < 1) {
+						console.log("timeOut------------");
+						clearInterval(connectStateTimer);
+						store.setDeviceInfo(null);
+						userInfo.device = '';
+						currentDeviceMac.value = '';
+						uni.showToast({
+							title: 'connection timed out',
+							icon: 'none'
+						})
+					}
+				}
+			});
+		}, 2000);
 	}
 
 	// 同步上传
@@ -132,7 +153,7 @@
 						const startTime = cgmRes.data.startTime;
 						const timeZone = -(new Date().getTimezoneOffset() / 60);
 						let uploadData = res.data.data.map(item => {
-							let handleTime = startTime + (item.offset * 180000);
+							let handleTime = startTime + ((item.offset + 1) * 180000);
 							return {
 								transmitterId: serial,
 								uploadTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
@@ -181,7 +202,7 @@
 				})
 			} else {
 				uni.showToast({
-					title: "The device is not connected",
+					title: "transmitter disconnect",
 					icon: "none"
 				})
 				syncRate.value = '';
@@ -198,6 +219,7 @@
 		console.log(param);
 		store.setDeviceInfo(param);
 		setCurrentDevice(param.deviceName, param.deviceMac);
+		watchConnect();
 	}
 
 	/* 设置当前设备显示信息 */
@@ -244,6 +266,7 @@
 						console.log(res);
 						if (res.code === 0) {
 							setCurrentDevice(currentDevice.value.deviceName, currentDevice.value.deviceMac);
+							watchConnect();
 						} else {
 							store.setDeviceInfo(null);
 							uni.showToast({
@@ -254,6 +277,7 @@
 					})
 				} else {
 					setCurrentDevice(currentDevice.value.deviceName, currentDevice.value.deviceMac);
+					watchConnect();
 				}
 			})
 		}
@@ -435,19 +459,35 @@
 	/* 手动血糖校验 */
 	const calibration = val => {
 		let bsNumber = Number(val);
+		if(bsNumber > 600) {
+			return uni.showToast({
+				title: 'Value cannot be greater than 600',
+				icon: 'none'
+			})
+		}
+		bsNumber = Math.round(bsNumber / 18 * 10) / 10;
 		let nums = bsNumber.toString().split('.')
 		let intNum = Number.parseInt(nums[0])
 		let floatNum = 0
 		if (nums.length > 1) {
 			floatNum = Number.parseInt(nums[1])
 		}
+		uni.showLoading({
+			title: 'loading'
+		})
 		hippoWatch.appBloodSugarCalibration(intNum, floatNum, 0, res => {
 			console.log(intNum, floatNum);
-			console.log(res);
+			console.log(res); 
+			uni.hideLoading();
 			if (res.code === 0) {
+				calibrationVisible.value = false;
 				uni.showToast({
 					title: 'success'
-				})
+				});
+			} else {
+				uni.showToast({
+					title: 'Validation failed'
+				});
 			}
 		})
 	}

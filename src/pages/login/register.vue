@@ -60,8 +60,8 @@
 	} from '@/api/login.js'
 
 	import IForm from './components/i-form'
-	// import logoPic from '@/pages/_image/login/logo.png';
-	import logoPic from '@/pages/_image/login/hippo.png';
+	import logoPic from '@/pages/_image/login/logo.png';
+	// import logoPic from '@/pages/_image/login/hippo.png';
 	import emailPic from '@/pages/_image/login/email.png';
 	import pwdPic from '@/pages/_image/login/password.png';
 	import codePic from '@/pages/_image/login/code.png';
@@ -240,14 +240,14 @@
 	.container {
 		.logo {
 			@extend .flex-center;
-			// margin: 156rpx 0 100rpx;
-			margin: 100rpx 0 100rpx;
+			margin: 156rpx 0 100rpx;
+			// margin: 100rpx 0 100rpx;
 
 			image {
-				// width: 520rpx;
-				// height: 92rpx;
-				width: 180rpx;
-				height: 180rpx;
+				width: 520rpx;
+				height: 92rpx;
+				// width: 180rpx;
+				// height: 180rpx;
 			}
 		}
 

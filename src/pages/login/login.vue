@@ -43,8 +43,8 @@
 	} from '@/store/global.js'
 	import IForm from './components/i-form'
 
-	// import logoPic from '@/pages/_image/login/logo.png';
-	import logoPic from '@/pages/_image/login/hippo.png';
+	import logoPic from '@/pages/_image/login/logo.png';
+	// import logoPic from '@/pages/_image/login/hippo.png';
 	import emailPic from '@/pages/_image/login/email.png';
 	import pwdPic from '@/pages/_image/login/password.png';
 
@@ -137,10 +137,10 @@
 				margin: 196rpx 0 120rpx;
 
 				image {
-					// width: 520rpx;
-					// height: 92rpx;
-					width: 180rpx;
-					height: 180rpx;
+					width: 520rpx;
+					height: 92rpx;
+					// width: 180rpx;
+					// height: 180rpx;
 				}
 			}
 
